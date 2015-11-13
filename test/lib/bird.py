@@ -43,12 +43,35 @@ class BirdContainer(BGPContainer):
     def create_config(self):
         c = CmdBuffer()
         c << 'router id {0};'.format(self.router_id)
+        c << 'listen bgp port 179;'
+        c << 'log "{0}/bird.log" all;'.format(self.SHARED_VOLUME)
+        c << 'debug protocols all;'
+        c << 'protocol device { }'
+        c << 'protocol direct {'
+        c << '  disabled;'
+        c << '}'
+        c << 'protocol kernel {'
+        c << '  disabled;'
+        c << '}'
+        c << 'table master;'
         for peer, info in self.peers.iteritems():
-            c << 'protocol bgp {'
+            if info['is_rs_client']:
+                c << 'table table_{0};'.format(peer.asn)
+                c << 'protocol pipe pipe_{0} {{'.format(peer.asn)
+                c << '  table master;'
+                c << '  mode transparent;'
+                c << '  peer table table_{0};'.format(peer.asn)
+                c << '  import all;'
+                c << '  export all;'
+                c << '}'
+            c << 'protocol bgp bgp_{0} {{'.format(peer.asn)
             c << '  local as {0};'.format(self.asn)
             n_addr = info['neigh_addr'].split('/')[0]
             c << '  neighbor {0} as {1};'.format(n_addr, peer.asn)
-            c << '  multihop;'
+            if info['is_rs_client']:
+                c << '  import all;'
+                c << '  export all;'
+                c << '  rs client;'
             c << '}'
 
         with open('{0}/bird.conf'.format(self.config_dir), 'w') as f:

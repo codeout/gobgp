@@ -17,7 +17,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -34,20 +33,46 @@ func newServer() *server.BgpServer {
 	return s
 }
 
+type Option struct {
+	NumPeer   int    `short:"n" long:"num-peer" description:"num of peers"`
+	NumPrefix int    `short:"p" long:"num-prefix" description:"num of peers"`
+	LogLevel  string `short:"l" long:"log-level" description:"specifying log level"`
+	Unique    bool   `short:"u" long:"unique" description:"send unique paths from each peers"`
+}
+
+type testFunc func(Option, map[string]*server.BgpServer)
+
+var testMap = map[string]testFunc{
+	"T1": T1,
+	"T2": T2,
+}
+
+func T1(Option, map[string]*server.BgpServer) {
+}
+
 func main() {
-	var opts struct {
-		NumPeer int `short:"n" long:"num-peer" description:"num of peers"`
-	}
-	args, err := flags.Parse(&opts)
+	var opt Option
+	args, err := flags.Parse(&opt)
 	if err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	if len(args) != 1 || args[0] != "T1" {
-		log.Errorf("Usage: performance_test -n <num-peer> T1")
-		os.Exit(1)
+	if len(args) != 1 {
+		log.Fatal("Usage: performance_test -n <num-peer> T1")
 	}
 
-	num := opts.NumPeer
+	f, ok := testMap[args[0]]
+	if !ok {
+		log.Fatal("unknown test pattern")
+	}
+
+	switch opt.LogLevel {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+
+	num := opt.NumPeer
 	serverMap := make(map[string]*server.BgpServer)
 	estabCh := make(chan struct{}, 8)
 	start := time.Now()
@@ -101,6 +126,7 @@ func main() {
 						KeepaliveInterval: config.DEFAULT_HOLDTIME / 3,
 					},
 				},
+				Afisafis: []string{"ipv4-unicast"},
 			},
 		})
 		s.GrpcReqCh <- req
@@ -126,7 +152,5 @@ func main() {
 END:
 	end := time.Now()
 	log.Infof("all established. elapsed time: %s", end.Sub(start))
-	if args[0] == "T1" {
-		return
-	}
+	f(opt, serverMap)
 }
