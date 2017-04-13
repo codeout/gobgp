@@ -398,6 +398,9 @@ func showNeighbor(args []string) error {
 			}
 		}
 	}
+	if p.Config.Preserve {
+		fmt.Print("  Preserve: enabled\n")
+	}
 	return nil
 }
 

@@ -276,6 +276,7 @@ func NewPeerFromConfigStruct(pconf *config.Neighbor) *Peer {
 			AllowOwnAs:        uint32(pconf.AsPathOptions.Config.AllowOwnAs),
 			RemovePrivateAs:   removePrivateAs,
 			ReplacePeerAs:     pconf.AsPathOptions.Config.ReplacePeerAs,
+			Preserve:          pconf.Config.Preserve,
 		},
 		Info: &PeerState{
 			BgpState:   string(s.SessionState),
@@ -1163,6 +1164,7 @@ func NewNeighborFromAPIStruct(a *Peer) (*config.Neighbor, error) {
 		case PeerConf_REPLACE:
 			pconf.Config.RemovePrivateAs = config.REMOVE_PRIVATE_AS_OPTION_REPLACE
 		}
+		pconf.Config.Preserve = a.Conf.Preserve
 
 		f := func(bufs [][]byte) ([]bgp.ParameterCapabilityInterface, error) {
 			var caps []bgp.ParameterCapabilityInterface

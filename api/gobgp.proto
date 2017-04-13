@@ -667,6 +667,7 @@ message PeerConf {
   string vrf = 17;
   uint32 allow_own_as = 18;
   bool replace_peer_as = 19;
+  bool preserve = 20;
 }
 
 message EbgpMultihop {
