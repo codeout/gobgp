@@ -848,6 +848,16 @@ func stateChangeNeighbor(cmd string, remoteIP string, args []string) error {
 	return nil
 }
 
+func markNeighbor(cmd string, remoteIP string, args []string) error {
+	switch cmd {
+	case CMD_PRESERVE:
+		return client.PreserveNeighbor(remoteIP)
+	case CMD_RELEASE:
+		return client.ReleaseNeighbor(remoteIP)
+	}
+	return nil
+}
+
 func showNeighborPolicy(remoteIP, policyType string, indent int) error {
 	var assignment *table.PolicyAssignment
 	var err error
@@ -1061,6 +1071,7 @@ func NewNeighborCmd() *cobra.Command {
 	c = append(c, cmds{[]string{CMD_LOCAL, CMD_ADJ_IN, CMD_ADJ_OUT, CMD_ACCEPTED, CMD_REJECTED}, showNeighborRib})
 	c = append(c, cmds{[]string{CMD_RESET, CMD_SOFT_RESET, CMD_SOFT_RESET_IN, CMD_SOFT_RESET_OUT}, resetNeighbor})
 	c = append(c, cmds{[]string{CMD_SHUTDOWN, CMD_ENABLE, CMD_DISABLE}, stateChangeNeighbor})
+	c = append(c, cmds{[]string{CMD_PRESERVE, CMD_RELEASE}, markNeighbor})
 
 	for _, v := range c {
 		f := v.f

@@ -26,13 +26,12 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-
 	cli "github.com/osrg/gobgp/client"
 	"github.com/osrg/gobgp/config"
 	"github.com/osrg/gobgp/packet/bgp"
 	"github.com/osrg/gobgp/table"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 const (
@@ -79,7 +78,8 @@ const (
 	CMD_BMP            = "bmp"
 	CMD_LARGECOMMUNITY = "large-community"
 	CMD_SUMMARY        = "summary"
-	CMD_VALIDATION     = "validation"
+	CMD_PRESERVE       = "preserve"
+	CMD_RELEASE        = "release"
 )
 
 var subOpts struct {
@@ -180,8 +180,8 @@ func (n neighbors) Swap(i, j int) {
 }
 
 func (n neighbors) Less(i, j int) bool {
-	p1 := n[i].State.NeighborAddress
-	p2 := n[j].State.NeighborAddress
+	p1 := n[i].Config.NeighborAddress
+	p2 := n[j].Config.NeighborAddress
 	p1Isv4 := !strings.Contains(p1, ":")
 	p2Isv4 := !strings.Contains(p2, ":")
 	if p1Isv4 != p2Isv4 {

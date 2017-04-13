@@ -221,6 +221,16 @@ func (cli *Client) DisableNeighbor(addr, communication string) error {
 	return err
 }
 
+func (cli *Client) PreserveNeighbor(addr string) error {
+	_, err := cli.cli.PreserveNeighbor(context.Background(), &api.PreserveNeighborRequest{Address: addr})
+	return err
+}
+
+func (cli *Client) ReleaseNeighbor(addr string) error {
+	_, err := cli.cli.ReleaseNeighbor(context.Background(), &api.ReleaseNeighborRequest{Address: addr})
+	return err
+}
+
 func (cli *Client) softreset(addr string, family bgp.RouteFamily, dir api.SoftResetNeighborRequest_SoftResetDirection) error {
 	_, err := cli.cli.SoftResetNeighbor(context.Background(), &api.SoftResetNeighborRequest{
 		Address:   addr,

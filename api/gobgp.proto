@@ -37,6 +37,8 @@ service GobgpApi {
   rpc ShutdownNeighbor(ShutdownNeighborRequest) returns (ShutdownNeighborResponse) {}
   rpc EnableNeighbor(EnableNeighborRequest) returns (EnableNeighborResponse) {}
   rpc DisableNeighbor(DisableNeighborRequest) returns (DisableNeighborResponse) {}
+  rpc PreserveNeighbor(PreserveNeighborRequest) returns (PreserveNeighborResponse) {}
+  rpc ReleaseNeighbor(ReleaseNeighborRequest) returns (ReleaseNeighborResponse) {}
   rpc GetRib(GetRibRequest) returns (GetRibResponse) {}
   rpc GetPath(GetPathRequest) returns (stream Path) {}
   rpc ValidateRib(ValidateRibRequest) returns (ValidateRibResponse) {}
@@ -172,6 +174,20 @@ message DisableNeighborRequest {
 }
 
 message DisableNeighborResponse {
+}
+
+message PreserveNeighborRequest {
+  string address = 1;
+}
+
+message PreserveNeighborResponse {
+}
+
+message ReleaseNeighborRequest {
+  string address = 1;
+}
+
+message ReleaseNeighborResponse {
 }
 
 message EnableMrtRequest {

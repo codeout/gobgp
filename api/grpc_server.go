@@ -683,6 +683,14 @@ func (s *Server) DisableNeighbor(ctx context.Context, arg *DisableNeighborReques
 	return &DisableNeighborResponse{}, s.bgpServer.DisableNeighbor(arg.Address, arg.Communication)
 }
 
+func (s *Server) PreserveNeighbor(ctx context.Context, arg *PreserveNeighborRequest) (*PreserveNeighborResponse, error) {
+	return &PreserveNeighborResponse{}, s.bgpServer.PreserveNeighbor(arg.Address)
+}
+
+func (s *Server) ReleaseNeighbor(ctx context.Context, arg *ReleaseNeighborRequest) (*ReleaseNeighborResponse, error) {
+	return &ReleaseNeighborResponse{}, s.bgpServer.ReleaseNeighbor(arg.Address)
+}
+
 func (s *Server) api2PathList(resource Resource, ApiPathList []*Path) ([]*table.Path, error) {
 	var nlri bgp.AddrPrefixInterface
 	var nexthop string

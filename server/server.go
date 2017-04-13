@@ -2123,6 +2123,24 @@ func (s *BgpServer) DisableNeighbor(addr, communication string) error {
 	}, true)
 }
 
+func (s *BgpServer) PreserveNeighbor(addr string) error {
+	peers, err := s.addrToPeers(addr)
+	if err != nil {
+		return err
+	}
+	for _, peer := range peers {
+		log.WithFields(log.Fields{
+			"Topic": "Peer",
+			"Key":   peer.fsm.pConf.Config.NeighborAddress,
+		}).Info("Preserving neighbor")
+	}
+	return nil
+}
+
+func (s *BgpServer) ReleaseNeighbor(addr string) error {
+	return nil
+}
+
 func (s *BgpServer) GetDefinedSet(typ table.DefinedType, name string) (sets *config.DefinedSets, err error) {
 	err = s.mgmtOperation(func() error {
 		sets, err = s.policy.GetDefinedSet(typ, name)
