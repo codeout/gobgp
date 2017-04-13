@@ -799,6 +799,14 @@ module gobgp {
     }
   }
 
+  augment "/bgp:bgp/bgp:neighbors/bgp:neighbor/bgp:config" {
+    leaf preserve {
+      type boolean;
+      description
+        "Configure the neighbor to be preserved";
+    }
+  }
+
   augment "/bgp:bgp/bgp:neighbors/bgp:neighbor/bgp:transport/bgp:config" {
     leaf remote-port {
       type inet:port-number;

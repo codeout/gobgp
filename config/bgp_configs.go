@@ -2988,6 +2988,9 @@ type NeighborConfig struct {
 	NeighborInterface string `mapstructure:"neighbor-interface" json:"neighbor-interface,omitempty"`
 	// original -> gobgp:vrf
 	Vrf string `mapstructure:"vrf" json:"vrf,omitempty"`
+	// original -> gobgp:preserve
+	//gobgp:preserve's original type is boolean
+	Preserve bool `mapstructure:"preserve" json:"preserve,omitempty"`
 }
 
 func (lhs *NeighborConfig) Equal(rhs *NeighborConfig) bool {
@@ -3031,6 +3034,9 @@ func (lhs *NeighborConfig) Equal(rhs *NeighborConfig) bool {
 		return false
 	}
 	if lhs.Vrf != rhs.Vrf {
+		return false
+	}
+	if lhs.Preserve != rhs.Preserve {
 		return false
 	}
 	return true
