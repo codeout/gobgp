@@ -2129,6 +2129,7 @@ func (s *BgpServer) PreserveNeighbor(addr string) error {
 		return err
 	}
 	for _, peer := range peers {
+		peer.fsm.pConf.Config.Preserve = true
 		log.WithFields(log.Fields{
 			"Topic": "Peer",
 			"Key":   peer.fsm.pConf.Config.NeighborAddress,
@@ -2138,6 +2139,17 @@ func (s *BgpServer) PreserveNeighbor(addr string) error {
 }
 
 func (s *BgpServer) ReleaseNeighbor(addr string) error {
+	peers, err := s.addrToPeers(addr)
+	if err != nil {
+		return err
+	}
+	for _, peer := range peers {
+		peer.fsm.pConf.Config.Preserve = false
+		log.WithFields(log.Fields{
+			"Topic": "Peer",
+			"Key":   peer.fsm.pConf.Config.NeighborAddress,
+		}).Info("Releasing neighbor")
+	}
 	return nil
 }
 
