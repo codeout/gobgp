@@ -553,6 +553,16 @@ func (server *BgpServer) dropPeerAllRoutes(peer *Peer, families []bgp.RouteFamil
 		rib = server.rsRib
 	}
 	for _, rf := range families {
+		if peer.fsm.pConf.Config.Preserve {
+			log.WithFields(log.Fields{
+				"Topic": "Peer",
+				"Key": peer.fsm.pConf.Config.NeighborAddress,
+				"State": peer.fsm.state.String(),
+			}).Infof("Preserved Peer Down")
+
+			continue
+		}
+
 		dsts := rib.DeletePathsByPeer(peer.fsm.peerInfo, rf)
 		if !peer.isRouteServerClient() {
 			gBestList, _, mpathList = dstsToPaths(table.GLOBAL_RIB_NAME, dsts, false)
