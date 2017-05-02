@@ -811,6 +811,12 @@ func (server *BgpServer) handleFSMMessage(peer *Peer, e *FsmMsg) {
 			} else {
 				drop = peer.configuredRFlist()
 			}
+
+			if peer.fsm.pConf.Config.Preserve {
+				peer.StaleAll(peer.configuredRFlist())
+				drop = drop[:0]
+			}
+
 			peer.prefixLimitWarned = make(map[bgp.RouteFamily]bool)
 			peer.DropAll(drop)
 			server.dropPeerAllRoutes(peer, drop)
@@ -2159,6 +2165,9 @@ func (s *BgpServer) ReleaseNeighbor(addr string) error {
 			"Topic": "Peer",
 			"Key":   peer.fsm.pConf.Config.NeighborAddress,
 		}).Info("Releasing neighbor")
+
+		pathList := peer.adjRibIn.DropStale(peer.configuredRFlist())
+		s.propagateUpdate(peer, pathList)
 	}
 	return nil
 }
