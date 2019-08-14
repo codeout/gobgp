@@ -1032,6 +1032,87 @@ func (s *BgpServer) processOutgoingPaths(peer *peer, paths, olds []*table.Path) 
 			old = olds[idx]
 		}
 		if p := s.filterpath(peer, path, old); p != nil {
+			// Hack
+			if !peer.fsm.pConf.Config.VlanAwareBundle {
+				if p != nil && p.GetRouteFamily() == bgp.RF_EVPN {
+					nlri := p.GetNlri().(*bgp.EVPNNLRI)
+
+					switch nlri.RouteType {
+					case bgp.EVPN_ROUTE_TYPE_ETHERNET_AUTO_DISCOVERY:
+						route := nlri.RouteTypeData.(*bgp.EVPNEthernetAutoDiscoveryRoute)
+
+						// For VLAN based router, RD needs to vary, otherwise only one route will be active per RD
+						rd := route.RD.(*bgp.RouteDistinguisherIPAddressAS)
+						rd.Assigned = uint16(route.ETag)
+
+						new := &bgp.EVPNEthernetAutoDiscoveryRoute{
+							RD:    rd,
+							ESI:   route.ESI,
+							ETag:  0,
+							Label: route.Label,
+						}
+
+						p = table.NewPath(p.GetSource(), bgp.NewEVPNNLRI(nlri.RouteType, new),
+							p.IsWithdraw, p.GetPathAttrs(), p.GetTimestamp(), false)
+					case bgp.EVPN_ROUTE_TYPE_MAC_IP_ADVERTISEMENT:
+						route := nlri.RouteTypeData.(*bgp.EVPNMacIPAdvertisementRoute)
+
+						// For VLAN based router, RD needs to vary, otherwise only one route will be active per RD
+						rd := route.RD.(*bgp.RouteDistinguisherIPAddressAS)
+						rd.Assigned = uint16(route.ETag)
+
+						new := &bgp.EVPNMacIPAdvertisementRoute{
+							RD:               rd,
+							ESI:              route.ESI,
+							ETag:             0,
+							MacAddressLength: route.MacAddressLength,
+							MacAddress:       route.MacAddress,
+							IPAddressLength:  route.IPAddressLength,
+							IPAddress:        route.IPAddress,
+							Labels:           route.Labels,
+						}
+
+						p = table.NewPath(p.GetSource(), bgp.NewEVPNNLRI(nlri.RouteType, new),
+							p.IsWithdraw, p.GetPathAttrs(), p.GetTimestamp(), false)
+					case bgp.EVPN_INCLUSIVE_MULTICAST_ETHERNET_TAG:
+						route := nlri.RouteTypeData.(*bgp.EVPNMulticastEthernetTagRoute)
+
+						// For VLAN based router, RD needs to vary, otherwise only one route will be active per RD
+						rd := route.RD.(*bgp.RouteDistinguisherIPAddressAS)
+						rd.Assigned = uint16(route.ETag)
+
+						new := &bgp.EVPNMulticastEthernetTagRoute{
+							RD:              rd,
+							IPAddressLength: route.IPAddressLength,
+							IPAddress:       route.IPAddress,
+							ETag:            0,
+						}
+
+						p = table.NewPath(p.GetSource(), bgp.NewEVPNNLRI(nlri.RouteType, new),
+							p.IsWithdraw, p.GetPathAttrs(), p.GetTimestamp(), false)
+					case bgp.EVPN_IP_PREFIX:
+						route := nlri.RouteTypeData.(*bgp.EVPNIPPrefixRoute)
+
+						// For VLAN based router, RD needs to vary, otherwise only one route will be active per RD
+						rd := route.RD.(*bgp.RouteDistinguisherIPAddressAS)
+						rd.Assigned = uint16(route.ETag)
+
+						new := &bgp.EVPNIPPrefixRoute{
+							RD:             rd,
+							ESI:            route.ESI,
+							ETag:           0,
+							IPPrefixLength: route.IPPrefixLength,
+							IPPrefix:       route.IPPrefix,
+							GWIPAddress:    route.GWIPAddress,
+							Label:          route.Label,
+						}
+
+						p = table.NewPath(p.GetSource(), bgp.NewEVPNNLRI(nlri.RouteType, new),
+							p.IsWithdraw, p.GetPathAttrs(), p.GetTimestamp(), false)
+					}
+				}
+			}
+
 			outgoing = append(outgoing, p)
 		}
 	}
@@ -1175,6 +1256,33 @@ func (s *BgpServer) propagateUpdate(peer *peer, pathList []*table.Path) {
 					paths = s.processOutgoingPaths(peer, paths, nil)
 				}
 				sendfsmOutgoingMsg(peer, paths, nil, false)
+			}
+		}
+
+		// Hack
+		if path.GetRouteFamily() == bgp.RF_EVPN {
+			nlri := path.GetNlri().(*bgp.EVPNNLRI)
+			switch nlri.RouteType {
+			case bgp.EVPN_ROUTE_TYPE_ETHERNET_AUTO_DISCOVERY:
+				evpnRoute := nlri.RouteTypeData.(*bgp.EVPNEthernetAutoDiscoveryRoute)
+				evpnRoute.ETag = evpnRoute.Label
+			case bgp.EVPN_ROUTE_TYPE_MAC_IP_ADVERTISEMENT:
+				evpnRoute := nlri.RouteTypeData.(*bgp.EVPNMacIPAdvertisementRoute)
+				if len(evpnRoute.Labels) > 0 {
+					evpnRoute.ETag = evpnRoute.Labels[0]
+				}
+			case bgp.EVPN_INCLUSIVE_MULTICAST_ETHERNET_TAG:
+				evpnRoute := nlri.RouteTypeData.(*bgp.EVPNMulticastEthernetTagRoute)
+				for _, ext := range path.GetExtCommunities() {
+					if ext, ok := ext.(*bgp.TwoOctetAsSpecificExtended); ok {
+						if ext.SubType == bgp.EC_SUBTYPE_ROUTE_TARGET {
+							evpnRoute.ETag = ext.LocalAdmin
+						}
+					}
+				}
+			case bgp.EVPN_IP_PREFIX:
+				evpnRoute := nlri.RouteTypeData.(*bgp.EVPNIPPrefixRoute)
+				evpnRoute.ETag = evpnRoute.Label
 			}
 		}
 
