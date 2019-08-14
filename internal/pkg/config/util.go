@@ -465,6 +465,7 @@ func NewPeerFromConfigStruct(pconf *Neighbor) *api.Peer {
 			RemovePrivateAs:   removePrivateAs,
 			ReplacePeerAs:     pconf.AsPathOptions.Config.ReplacePeerAs,
 			AdminDown:         pconf.Config.AdminDown,
+			VlanAwareBundle:   pconf.Config.VlanAwareBundle,
 		},
 		State: &api.PeerState{
 			SessionState: api.PeerState_SessionState(api.PeerState_SessionState_value[strings.ToUpper(string(s.SessionState))]),

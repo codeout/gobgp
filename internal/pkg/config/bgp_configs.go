@@ -3106,6 +3106,11 @@ type NeighborState struct {
 	Vrf string `mapstructure:"vrf" json:"vrf,omitempty"`
 	// original -> gobgp:remote-router-id
 	RemoteRouterId string `mapstructure:"remote-router-id" json:"remote-router-id,omitempty"`
+
+	// original -> gobgp:vlan-aware-bundle
+	// gobgp:vlan-aware-bundle's original type is boolean.
+	// The config of EVPN type. Indicating VLAN based or VLAN aware bundle. false by default.
+	VlanAwareBundle bool `mapstructure:"vlan-aware-bundle" json:"vlan-aware-bundle,omitempty"`
 }
 
 // struct for container bgp:config.
@@ -3162,6 +3167,9 @@ type NeighborConfig struct {
 	NeighborInterface string `mapstructure:"neighbor-interface" json:"neighbor-interface,omitempty"`
 	// original -> gobgp:vrf
 	Vrf string `mapstructure:"vrf" json:"vrf,omitempty"`
+
+	// The config of EVPN type. Indicating VLAN based or VLAN aware bundle. false by default.
+	VlanAwareBundle bool `mapstructure:"vlan-aware-bundle" json:"vlan-aware-bundle,omitempty"`
 }
 
 func (lhs *NeighborConfig) Equal(rhs *NeighborConfig) bool {
@@ -3199,6 +3207,9 @@ func (lhs *NeighborConfig) Equal(rhs *NeighborConfig) bool {
 		return false
 	}
 	if lhs.AdminDown != rhs.AdminDown {
+		return false
+	}
+	if lhs.VlanAwareBundle != rhs.VlanAwareBundle {
 		return false
 	}
 	if lhs.NeighborInterface != rhs.NeighborInterface {

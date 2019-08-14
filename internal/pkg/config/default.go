@@ -214,6 +214,7 @@ func setDefaultNeighborConfigValuesWithViper(v *viper.Viper, n *Neighbor, g *Glo
 
 	n.State.Description = n.Config.Description
 	n.State.AdminDown = n.Config.AdminDown
+	n.State.VlanAwareBundle = n.Config.VlanAwareBundle
 
 	if n.GracefulRestart.Config.Enabled {
 		if !v.IsSet("neighbor.graceful-restart.config.restart-time") && n.GracefulRestart.Config.RestartTime == 0 {

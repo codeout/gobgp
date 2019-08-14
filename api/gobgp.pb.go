@@ -2786,6 +2786,7 @@ type PeerConf struct {
 	AllowOwnAs        uint32                   `protobuf:"varint,13,opt,name=allow_own_as,json=allowOwnAs" json:"allow_own_as,omitempty"`
 	ReplacePeerAs     bool                     `protobuf:"varint,14,opt,name=replace_peer_as,json=replacePeerAs" json:"replace_peer_as,omitempty"`
 	AdminDown         bool                     `protobuf:"varint,15,opt,name=admin_down,json=adminDown" json:"admin_down,omitempty"`
+	VlanAwareBundle   bool                     `protobuf:"varint,16,opt,name=vlan-aware-bundle,json=vlan-aware-bundle" json:"vlan-aware-bundle,omitempty"`
 }
 
 func (m *PeerConf) Reset()                    { *m = PeerConf{} }
@@ -2894,6 +2895,13 @@ func (m *PeerConf) GetReplacePeerAs() bool {
 func (m *PeerConf) GetAdminDown() bool {
 	if m != nil {
 		return m.AdminDown
+	}
+	return false
+}
+
+func (m *PeerConf) GetVlanAwareBundle() bool {
+	if m != nil {
+		return m.VlanAwareBundle
 	}
 	return false
 }
